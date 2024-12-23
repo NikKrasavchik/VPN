@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace VPN.MVVM.ViewModel
 {
-    class SettingsViewModel
+    internal class SettingsViewModel
     {
+        public GlobalViewModel Global { get; } = GlobalViewModel.Instance;
+        public SettingsViewModel()
+        {
+
+        }
     }
 }

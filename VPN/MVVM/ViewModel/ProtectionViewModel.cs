@@ -14,6 +14,9 @@ namespace VPN.MVVM.ViewModel
     internal class ProtectionViewModel : ObservableObject
     {
         public ObservableCollection<ServerModel> Servers { get; set; }
+
+        public GlobalViewModel Global { get; } = GlobalViewModel.Instance;
+
         private string _connectionStatus;
         public string ConnectionStatus
         {
@@ -38,29 +41,35 @@ namespace VPN.MVVM.ViewModel
 
             ConnectCommand = new RelayCommand(o => 
             {
-                ConnectionStatus = "Connecting..";
-                var process = new Process();
-                process.StartInfo.FileName = "cmd.exe";
-                process.StartInfo.WorkingDirectory = Environment.CurrentDirectory;
-                process.StartInfo.ArgumentList.Add(@"/c rasdial MyServer vpnbook c28hes5 /phonebook:UK68.vpnbook.com.pbk");
-
-                process.Start();
-                process.WaitForExit();
-
-                switch (process.ExitCode)
+                Task.Run(() =>
                 {
-                    case 0:
-                        Debug.WriteLine("Success!");
-                        break;
+                    ConnectionStatus = "Connecting..";
+                    var process = new Process();
+                    process.StartInfo.FileName = "cmd.exe";
+                    process.StartInfo.WorkingDirectory = Environment.CurrentDirectory;
+                    process.StartInfo.ArgumentList.Add(@"/c rasdial MyServer vpnbook c28hes5 /phonebook:UK68.vpnbook.com.pbk");
 
-                    case 691:
-                        Debug.WriteLine("Wrong credential!");
-                        break;
+                    process.Start();
+                    process.WaitForExit();
 
-                    default:
-                        Debug.WriteLine($"Error: {process.ExitCode}");
-                        break;
-                }
+                    switch (process.ExitCode)
+                    {
+                        case 0:
+                            Debug.WriteLine("Success!");
+                            ConnectionStatus = "Connection successful!";
+                            break;
+
+                        case 691:
+                            Debug.WriteLine("Wrong credential!");
+                            ConnectionStatus = "Offline";
+                            break;
+
+                        default:
+                            Debug.WriteLine($"Error: {process.ExitCode}");
+                            ConnectionStatus = "Offline";
+                            break;
+                    }
+                });
             });
             ServerBuilder();
         }
